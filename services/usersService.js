@@ -18,6 +18,21 @@ const RegisterSchema = Joi.object({
     }),
 });
 
+const LoginSchema = Joi.object({
+  email: Joi.string().email().required()
+    .messages({
+      'string.email': '"email" must be a valid email',
+      'string.empty': '"email" is not allowed to be empty',
+      'string.required': '"email" is required',
+    }),
+  password: Joi.string().min(6).required()
+    .messages({
+      'string.min': '"password" length must be 6 characters long',
+      'string.empty': '"password" is not allowed to be empty',
+      'string.required': '"password" is required',
+    }),
+});
+
 const secret = 'secret_key';
 
 const jwtConfig = {
@@ -61,7 +76,31 @@ const register = async ({ displayName, email, password, image }) => {
   return { status: 201, json: { token } };
 };
 
+const login = async ({ email, password }) => {
+  const { error } = LoginSchema.validate({ email, password });
+
+  if (error) {
+    return { status: 400, json: { message: error.details[0].message } };
+  }
+
+  const findUser = await Users.findOne({ where: { email } });
+
+  if (!findUser) {
+    return { status: 400, json: { message: 'Invalid fields' } };
+  }
+
+  const payload = {
+    displayName: findUser.displayName,
+    email: findUser.email,
+    image: findUser.image,
+  };
+  const token = jwt.sign(payload, secret, jwtConfig);
+
+  return { status: 200, json: { token } };
+};
+
 module.exports = {
   getUserByEmail,
   register,
+  login,
 };

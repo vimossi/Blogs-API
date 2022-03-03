@@ -6,6 +6,8 @@ const BlogPosts = (sequelize, DataTypes) => {
     userId: DataTypes.INTEGER,
     published: DataTypes.DATE,
     updated: DataTypes.DATE,
+  }, {
+    timestamps: false,
   });
 
   return BlogPost;
