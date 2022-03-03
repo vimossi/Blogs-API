@@ -7,6 +7,13 @@ const create = async (req, res) => {
   return res.status(response.status).json(response.json);
 };
 
+const getAll = async (req, res) => {
+  const { user } = req;
+  const response = await Posts.getAll(user.dataValues); 
+  return res.status(response.status).json(response.json);
+};
+
 module.exports = {
   create,
+  getAll,
 };

@@ -16,5 +16,6 @@ router.post('/categories', validateJWT, Categories.create);
 router.get('/categories', validateJWT, Categories.getAll);
 
 router.post('/post', validateJWT, Posts.create);
+router.get('/post', validateJWT, Posts.getAll);
 
 module.exports = router;

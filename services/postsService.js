@@ -1,6 +1,6 @@
 const Joi = require('@hapi/joi');
 const { Op } = require('sequelize');
-const { BlogPosts, Categories } = require('../models/index');
+const { BlogPosts, Categories, PostsCategories } = require('../models/index');
 
 const PostSchema = Joi.object({
   userId: Joi.number(),
@@ -15,13 +15,7 @@ const PostSchema = Joi.object({
   }),
 });
 
-const create = async ({ title, content, categoryIds, userId }) => {
-  const { error } = PostSchema.validate({ title, content, categoryIds });
-
-  if (error) {
-    return { status: 400, json: { message: error.details[0].message } };
-  }
-
+const getCategories = async (categoryIds) => {
   const categories = await Categories.findAll({
     where: {
       [Op.or]: categoryIds.map((categoryId) => ({
@@ -30,15 +24,57 @@ const create = async ({ title, content, categoryIds, userId }) => {
     },
   });
 
+  return categories;
+};
+
+const create = async ({ title, content, categoryIds, userId }) => {
+  const { error } = PostSchema.validate({ title, content, categoryIds });
+
+  if (error) {
+    return { status: 400, json: { message: error.details[0].message } };
+  }
+
+  const categories = await getCategories(categoryIds);
+
   if (categories.length !== categoryIds.length) {
     return { status: 400, json: { message: '"categoryIds" not found' } };
   }
 
   const newPost = await BlogPosts.create({ userId, title, content, categoryIds });
+  await Promise.all(categoryIds.map(
+    (categoryId) => PostsCategories.create({ postId: newPost.id, categoryId }),
+));
 
   return { status: 201, json: newPost };
 };
 
+const getCategoriesFromPost = async (postId) => {
+  const categoryIdsData = await PostsCategories.findAll({
+    where: {  
+        postId,
+      },
+    });
+  const categoryIds = categoryIdsData
+    .map((categoryIdData) => categoryIdData.dataValues.categoryId);
+  const categoriesData = await getCategories(categoryIds);
+  const categories = categoriesData.map((categoryData) => ({ ...categoryData.dataValues }));
+  return categories;
+};
+
+const getAll = async (user) => {
+  const response = await BlogPosts.findAll();
+  const blogPostsPromises = response.map(async (blogPost) => {
+    const categories = await getCategoriesFromPost(blogPost.dataValues.id);
+
+    const { id, title, content, userId, published, updated } = blogPost.dataValues;
+    return { id, title, content, userId, published, updated, user, categories };
+  });
+
+  const blogPosts = await Promise.all(blogPostsPromises);
+  return { status: 200, json: blogPosts };
+};
+
 module.exports = {
   create,
+  getAll,
 };
