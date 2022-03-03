@@ -99,8 +99,14 @@ const login = async ({ email, password }) => {
   return { status: 200, json: { token } };
 };
 
+const getAll = async () => {
+  const users = await Users.findAll();
+  return { status: 200, json: users };
+};
+
 module.exports = {
   getUserByEmail,
   register,
   login,
+  getAll,
 };
