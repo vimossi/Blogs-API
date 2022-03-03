@@ -104,9 +104,20 @@ const getAll = async () => {
   return { status: 200, json: users };
 };
 
+const getOne = async (id) => {
+  const user = await Users.findOne({ where: { id } });
+
+  if (!user) {
+    return { status: 404, json: { message: 'User does not exist' } };
+  }
+
+  return { status: 200, json: user };
+};
+
 module.exports = {
   getUserByEmail,
   register,
   login,
   getAll,
+  getOne,
 };
