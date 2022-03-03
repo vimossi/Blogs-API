@@ -12,7 +12,13 @@ const login = async (req, res) => {
   return res.status(response.status).json(response.json);
 };
 
+const getAll = async (req, res) => {
+  const response = await Users.getAll(); 
+  return res.status(response.status).json(response.json);
+};
+
 module.exports = {
   register,
   login,
+  getAll,
 };
