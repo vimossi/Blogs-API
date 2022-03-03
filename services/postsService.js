@@ -15,6 +15,16 @@ const PostSchema = Joi.object({
   }),
 });
 
+const PostUpdateSchema = Joi.object({
+  userId: Joi.number(),
+  title: Joi.string().required().messages({
+    'string.required': '"title" is required',
+  }),
+  content: Joi.string().required().messages({
+    'string.required': '"content" is required',
+  }),
+});
+
 const getCategories = async (categoryIds) => {
   const categories = await Categories.findAll({
     where: {
@@ -90,8 +100,43 @@ const getOne = async ({ id, user }) => {
   return { status: 200, json: post };
 };
 
+const isUpdateValid = ({ title, content, categoryIds }) => {
+  const { error } = PostUpdateSchema.validate({ title, content });
+
+  if (error || categoryIds) {
+    return { status: 400, 
+      json: { message: categoryIds ? 'Categories cannot be edited' : error.details[0].message } };
+  }
+
+  return null;
+};
+
+const update = async ({ title, content, categoryIds, userId, id }) => {
+  const validateObj = isUpdateValid({ title, content, categoryIds });
+  if (validateObj) {
+    return validateObj;
+  }
+
+  const postToUpdate = await BlogPosts.findOne({ where: { id } });
+  if (Number(postToUpdate.dataValues.userId) !== Number(userId)) {
+    return { status: 401, json: { message: 'Unauthorized user' } };
+  }
+
+  await BlogPosts.update({ title, content }, { where: { id } });
+  const categories = await getCategoriesFromPost(id);
+  const post = {
+    title,
+    content,
+    userId: Number(userId),
+    categories,
+  };
+
+  return { status: 200, json: post };
+};
+
 module.exports = {
   create,
   getAll,
   getOne,
+  update,
 };
