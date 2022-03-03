@@ -25,6 +25,12 @@ const create = async ({ name }) => {
   return { status: 201, json: newCategory };
 };
 
+const getAll = async () => {
+  const categories = await Categories.findAll();
+  return { status: 200, json: categories };
+};
+
 module.exports = {
   create,
+  getAll,
 };
