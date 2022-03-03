@@ -134,9 +134,27 @@ const update = async ({ title, content, categoryIds, userId, id }) => {
   return { status: 200, json: post };
 };
 
+const deleteOne = async ({ id, user }) => {
+  const postData = await BlogPosts.findOne({ where: { id } });
+
+  if (!postData) {
+    return { status: 404, json: { message: 'Post does not exist' } };
+  }
+
+  if (Number(postData.dataValues.userId) !== Number(user.id)) {
+    return { status: 401, json: { message: 'Unauthorized user' } };
+  }
+
+  await PostsCategories.destroy({ where: { postId: id } });
+  await BlogPosts.destroy({ where: { id } });  
+
+  return { status: 204 };
+};
+
 module.exports = {
   create,
   getAll,
   getOne,
   update,
+  deleteOne,
 };
