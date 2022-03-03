@@ -13,7 +13,15 @@ const getAll = async (req, res) => {
   return res.status(response.status).json(response.json);
 };
 
+const getOne = async (req, res) => {
+  const { id } = req.params;
+  const { user } = req;
+  const response = await Posts.getOne({ id, user: user.dataValues });
+  return res.status(response.status).json(response.json);
+};
+
 module.exports = {
   create,
   getAll,
+  getOne,
 };

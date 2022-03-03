@@ -74,7 +74,24 @@ const getAll = async (user) => {
   return { status: 200, json: blogPosts };
 };
 
+const getOne = async ({ id, user }) => {
+  const postData = await BlogPosts.findOne({ where: { id } });
+
+  if (!postData) {
+    return { status: 404, json: { message: 'Post does not exist' } };
+  }
+
+  const { title, content, userId, published, updated } = postData.dataValues;
+  const categories = await getCategoriesFromPost(id);
+  const post = {
+    id: Number(id), title, content, userId, published, updated, user, categories,
+  };
+
+  return { status: 200, json: post };
+};
+
 module.exports = {
   create,
   getAll,
+  getOne,
 };
