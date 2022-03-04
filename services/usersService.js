@@ -114,10 +114,23 @@ const getOne = async (id) => {
   return { status: 200, json: user };
 };
 
+const deleteOne = async ({ user }) => {
+  const userData = await Users.findOne({ where: { id: user.id } });
+
+  if (!userData) {
+    return { status: 404, json: { message: 'User does not exist' } };
+  }
+
+  await Users.destroy({ where: { id: user.id } });  
+
+  return { status: 204 };
+};
+
 module.exports = {
   getUserByEmail,
   register,
   login,
   getAll,
   getOne,
+  deleteOne,
 };

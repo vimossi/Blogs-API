@@ -23,9 +23,16 @@ const getOne = async (req, res) => {
   return res.status(response.status).json(response.json);
 };
 
+const deleteOne = async (req, res) => {
+  const { user } = req;
+  const response = await Users.deleteOne({ user: user.dataValues });
+  return res.status(response.status).json(response.json);
+};
+
 module.exports = {
   register,
   login,
   getAll,
   getOne,
+  deleteOne,
 };
